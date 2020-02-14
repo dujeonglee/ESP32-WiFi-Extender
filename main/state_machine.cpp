@@ -2,6 +2,7 @@
 #include "arp_chain.h"
 #include "dhcp_chain.h"
 #include "route_chain.h"
+#include "bcmc_chain.h"
 #include "debug_chain.h"
 
 #include "state_machine.h"
@@ -208,6 +209,7 @@ restart_scan:
         CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_STA);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, arp_filter_sta, arp_process_sta);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, dhcp_filter_sta, dhcp_process_sta);
+        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, bcmc_filter, bcmc_process_sta);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, route_filter_sta, route_process_sta);
         //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, nullptr, debug_process);
         start_scan();
@@ -255,6 +257,7 @@ restart_scan:
         CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_AP);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, arp_filter_ap, arp_process_ap);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, dhcp_filter_ap, dhcp_process_ap);
+        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, bcmc_filter, bcmc_process_ap);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, route_filter_ap, route_process_ap);
         //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, nullptr, debug_process);
         break;

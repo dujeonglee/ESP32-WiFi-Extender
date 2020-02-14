@@ -52,6 +52,9 @@ public:
         }
         return (struct eth_addr*)_interfaces[type]->hwaddr;
     }
+    inline struct netif* get_interface(const tcpip_adapter_if_t type) {
+        return _interfaces[type];
+    }
     esp_err_t install_input_chain(const tcpip_adapter_if_t type);
     esp_err_t uninstall_input_chain(const tcpip_adapter_if_t type);
     esp_err_t add_chain(const tcpip_adapter_if_t type, input_chain_filter_fn filter, input_chain_process_fn process);

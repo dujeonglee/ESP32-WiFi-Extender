@@ -15,6 +15,10 @@ bool dhcp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
 pkt_fate_t dhcp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     struct pbuf *new_p = nullptr;
 
+    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_STA)) {
+        return TYPE_FORWARD;
+    }
+
     new_p = pbuf_alloc(PBUF_RAW_TX, p->tot_len, PBUF_RAM);
     if(!new_p) {
         ESP_LOGE(__func__, "pbuf allocation is failed.");
@@ -53,6 +57,9 @@ pkt_fate_t dhcp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     bool ack = false;
     uint8_t *router_address = NULL;
 
+    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_AP)) {
+        return TYPE_FORWARD;
+    }
 
     new_p = pbuf_alloc(PBUF_RAW_TX, p->tot_len, PBUF_RAM);
     if(!new_p) {
