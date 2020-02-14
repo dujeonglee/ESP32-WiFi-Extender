@@ -257,7 +257,7 @@ restart_scan:
         CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_AP);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, arp_filter_ap, arp_process_ap);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, dhcp_filter_ap, dhcp_process_ap);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, bcmc_filter, bcmc_process_ap);
+        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, bcmc_filter, bcmc_process_ap);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, route_filter_ap, route_process_ap);
         //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, nullptr, debug_process);
         break;
