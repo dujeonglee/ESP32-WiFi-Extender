@@ -112,18 +112,39 @@ err_t CustomNetif::traverse_input_chain(const tcpip_adapter_if_t type, struct pb
 }
 
 err_t CustomNetif::l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4_addr_t* nexthop) {
-    if(!_interfaces[type]) {
+    struct netif* iface = _interfaces[type];
+    ip4_addr_t route;
+    if(!iface) {
         return ERR_IF;
     }
+
+    /* Simple Link local routing */
+    if(nexthop) {
+        route.addr = nexthop->addr;
+    } else {
+        if((IP4(p)->dest.addr & iface->netmask.u_addr.ip4.addr) == (iface->ip_addr.u_addr.ip4.addr & iface->netmask.u_addr.ip4.addr)) {
+            // Link local addresses including link local broadcast will fall into this case.
+            route.addr = IP4(p)->dest.addr;
+        } else if (((((uint8_t*)&(IP4(p)->dest.addr))[0] & 0xf0) == 0xe0) ||
+                   IP4(p)->dest.addr == 0xffffffff) {
+            // Broadcast and multicast addresses will fall into this case.
+            route.addr = IP4(p)->dest.addr;
+        } else {
+            // Default routing to gw.
+            route.addr = iface->gw.u_addr.ip4.addr;
+        }
+    }
+    
     // reset eth header.
     pbuf_header(p, -sizeof(struct eth_hdr));
-    return _interfaces[type]->output(_interfaces[type], p, nexthop);
+    return iface->output(iface, p, &route);
 }
 
 err_t CustomNetif::transmit(const tcpip_adapter_if_t type, struct pbuf *p) {
-    if(!_interfaces[type]) {
+    struct netif* iface = _interfaces[type];
+    if(!iface) {
         return ERR_IF;
     }
-    memcpy(ETH(p)->src.addr, _interfaces[type]->hwaddr, NETIF_MAX_HWADDR_LEN);
-    return _interfaces[type]->linkoutput(_interfaces[type], p);
+    memcpy(ETH(p)->src.addr, iface->hwaddr, NETIF_MAX_HWADDR_LEN);
+    return iface->linkoutput(iface, p);
 }

@@ -28,7 +28,7 @@ pkt_fate_t dhcp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     }
     //DHCP(new_p)->flags = htons(0x8000);
     //UDP4(new_p)->chksum = 0;
-    if(ERR_OK != CustomNetif::instance()->transmit(TCPIP_ADAPTER_IF_STA, new_p)) {
+    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_STA, new_p)) {
         ESP_LOGE(__func__, "Cannot relay dhcp to STA");
         pbuf_free(new_p);
         return TYPE_FORWARD;
@@ -67,7 +67,7 @@ pkt_fate_t dhcp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     }
     //DHCP(new_p)->flags = htons(0x8000);
     //UDP4(new_p)->chksum = 0;
-    if(ERR_OK != CustomNetif::instance()->transmit(TCPIP_ADAPTER_IF_AP, new_p)) {
+    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_AP, new_p)) {
         ESP_LOGE(__func__, "Cannot relay dhcp to AP");
         pbuf_free(new_p);
         return TYPE_FORWARD;

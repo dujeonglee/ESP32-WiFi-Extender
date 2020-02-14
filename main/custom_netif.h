@@ -57,7 +57,7 @@ public:
     esp_err_t add_chain(const tcpip_adapter_if_t type, input_chain_filter_fn filter, input_chain_process_fn process);
     err_t traverse_input_chain(const tcpip_adapter_if_t type, struct pbuf *p, struct netif *inp);
 
-    err_t l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4_addr_t* nexthop);
+    err_t l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4_addr_t* nexthop = nullptr);
     err_t transmit(const tcpip_adapter_if_t type, struct pbuf *p);
 };
 

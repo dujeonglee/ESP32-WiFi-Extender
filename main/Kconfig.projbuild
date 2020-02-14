@@ -24,18 +24,6 @@ menu "WiFi Extender Configuration"
         help
             Maximum number of connection retry.
 
-    config SERVICE_AP_SSID
-        string "AP SSID"
-        default "service"
-        help
-            SSID for service AP.
-
-    config SERVICE_AP_PASSWORD
-        string "AP Password"
-        default "mypassword"
-        help
-            Password for service AP.
-
     config MAX_STATION
         int "Max Station"
         default 2
