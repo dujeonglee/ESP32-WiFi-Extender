@@ -1,0 +1,45 @@
+menu "WiFi Extender Configuration"
+
+    config GW_AP_SSID
+        string "GW SSID"
+        default "APSSID"
+        help
+            SSID for gateway AP.
+
+    config GW_AP_PASSWORD
+        string "GW Password"
+        default "APPasswrd"
+        help
+            Password (WPA or WPA2) for gateway AP.
+
+    config MAXIMUM_SCAN_RETRY
+        int "Maximum scan retry"
+        default 5
+        help
+            Maximum number of scan retry.
+
+    config MAXIMUM_CONNECTION_RETRY
+        int "Maximum connection retry"
+        default 5
+        help
+            Maximum number of connection retry.
+
+    config SERVICE_AP_SSID
+        string "AP SSID"
+        default "service"
+        help
+            SSID for service AP.
+
+    config SERVICE_AP_PASSWORD
+        string "AP Password"
+        default "mypassword"
+        help
+            Password for service AP.
+
+    config MAX_STATION
+        int "Max Station"
+        default 2
+        help
+            Maximum number of station for service AP.
+
+endmenu
