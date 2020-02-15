@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := wifi_repeator
+PROJECT_NAME := wifi_extender
 
 include $(IDF_PATH)/make/project.mk
 

@@ -12,17 +12,17 @@ menu "WiFi Extender Configuration"
         help
             Password (WPA or WPA2) for gateway AP.
 
-    config MAXIMUM_SCAN_RETRY
-        int "Maximum scan retry"
-        default 5
-        help
-            Maximum number of scan retry.
-
     config MAXIMUM_CONNECTION_RETRY
         int "Maximum connection retry"
         default 5
         help
             Maximum number of connection retry.
+
+    config MAXIMUM_RETRANSMISSION
+        int "Maximum retransmission"
+        default 3
+        help
+            Maximum number of retransmission.
 
     config MAX_STATION
         int "Max Station"

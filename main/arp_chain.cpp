@@ -101,7 +101,7 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ETH(p)->dest.addr[0] != 0xff || ETH(p)->dest.addr[1] != 0xff || ETH(p)->dest.addr[2] != 0xff || ETH(p)->dest.addr[3] != 0xff || ETH(p)->dest.addr[4] != 0xff || ETH(p)->dest.addr[5] != 0xff) {
         return false;
     }
-        if(ETHTYPE_ARP != ntohs(ETH(p)->type)) {
+    if(ETHTYPE_ARP != ntohs(ETH(p)->type)) {
         return false;
     }
     if(HWTYPE_ETHERNET != ntohs(ARP(p)->hwtype)) {

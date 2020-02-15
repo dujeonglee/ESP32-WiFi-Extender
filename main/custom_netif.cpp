@@ -112,6 +112,7 @@ err_t CustomNetif::traverse_input_chain(const tcpip_adapter_if_t type, struct pb
 err_t CustomNetif::l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4_addr_t* nexthop) {
     struct netif* iface = _interfaces[type];
     ip4_addr_t route;
+    err_t err;
     if(!iface) {
         return ERR_IF;
     }
@@ -135,14 +136,27 @@ err_t CustomNetif::l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4
     
     // reset eth header.
     pbuf_header(p, -sizeof(struct eth_hdr));
-    return iface->output(iface, p, &route);
+    for(uint8_t tx = 0 ; tx < CONFIG_MAXIMUM_RETRANSMISSION ; tx++) {
+        err = iface->output(iface, p, &route);
+        if(err == ERR_OK) {
+            return ERR_OK;
+        }
+    }
+    return err;
 }
 
 err_t CustomNetif::transmit(const tcpip_adapter_if_t type, struct pbuf *p) {
     struct netif* iface = _interfaces[type];
+    err_t err;
     if(!iface) {
         return ERR_IF;
     }
     memcpy(ETH(p)->src.addr, iface->hwaddr, NETIF_MAX_HWADDR_LEN);
-    return iface->linkoutput(iface, p);
+    for(uint8_t tx = 0 ; tx < CONFIG_MAXIMUM_RETRANSMISSION ; tx++) {
+        err = iface->linkoutput(iface, p);
+        if(err == ERR_OK) {
+            return ERR_OK;
+        }
+    }
+    return err;
 }
