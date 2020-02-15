@@ -82,7 +82,7 @@ pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
         return TYPE_FORWARD;
     }
-    transmit_proxy_arp(type,
+    const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),
                    &(ARP(p)->shwaddr),
                    CustomNetif::instance()->interface_address(type),
@@ -90,6 +90,9 @@ pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
                    &(ARP(p)->shwaddr),
                    (ip4_addr_t *)(ARP(p)->sipaddr.addrw),
                    ARP_REPLY);
+    if(ERR_OK != err) {
+        ESP_LOGE(__func__, "Cannot send ARP response");
+    }
     return TYPE_CONSUME;
 }
 
@@ -125,7 +128,7 @@ pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
         return TYPE_FORWARD;
     }
-    transmit_proxy_arp(type,
+    const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),
                    &(ARP(p)->shwaddr),
                    CustomNetif::instance()->interface_address(type),
@@ -133,5 +136,8 @@ pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
                    &(ARP(p)->shwaddr),
                    (ip4_addr_t *)(ARP(p)->sipaddr.addrw),
                    ARP_REPLY);
+    if(ERR_OK != err) {
+        ESP_LOGE(__func__, "Cannot send ARP response");
+    }
     return TYPE_CONSUME;
 }
