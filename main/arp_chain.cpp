@@ -80,7 +80,7 @@ bool arp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
 
 pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
-        return TYPE_FORWARD;
+        return TYPE_CONSUME;
     }
     const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),
@@ -126,7 +126,7 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
 
 pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
-        return TYPE_FORWARD;
+        return TYPE_CONSUME;
     }
     const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),

@@ -108,6 +108,19 @@ err_t CustomNetif::traverse_input_chain(const tcpip_adapter_if_t type, struct pb
             break;
         }
     }
+#if 0
+>>>> wlanif.c <<<<
+
+void ESP_IRAM_ATTR
+wlanif_input(struct netif *netif, void *buffer, u16_t len, void* eb) {
+...
+  /* full packet send to tcpip_thread to process */
+  if (netif->input(p, netif) != ERR_OK) {
+    LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
+    pbuf_free(p);
+  }
+}
+#endif
     return _original_inputs[type](p, inp);
 }
 
