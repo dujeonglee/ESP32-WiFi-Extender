@@ -6,8 +6,7 @@ static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_
                  const struct eth_addr *ethdst_addr,
                  const struct eth_addr *hwsrc_addr, const ip4_addr_t *ipsrc_addr,
                  const struct eth_addr *hwdst_addr, const ip4_addr_t *ipdst_addr,
-                 const u16_t opcode)
-{
+                 const u16_t opcode) {
     struct pbuf *p;
     err_t result = ERR_OK;
     struct eth_hdr *ethhdr;
@@ -16,8 +15,7 @@ static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_
     /* allocate a pbuf for the outgoing ARP request packet */
     p = pbuf_alloc(PBUF_RAW_TX, /*SIZEOF_ETHARP_PACKET_TX*/ 14+2+28, PBUF_RAM);
     /* could allocate a pbuf for an ARP request? */
-    if (p == NULL)
-    {
+    if (p == NULL) {
         return ERR_MEM;
     }
 
@@ -80,7 +78,8 @@ bool arp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
 
 pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
-        return TYPE_CONSUME;
+        pbuf_free(p);
+        return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
     const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),
@@ -93,10 +92,12 @@ pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ERR_OK != err) {
         ESP_LOGE(__func__, "Cannot send ARP response");
     }
-    return TYPE_CONSUME;
+    pbuf_free(p);
+    return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
 
 bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
+    struct netif* iface = CustomNetif::instance()->get_interface(type);
     if(ETH(p)->dest.addr[0] != 0xff || ETH(p)->dest.addr[1] != 0xff || ETH(p)->dest.addr[2] != 0xff || ETH(p)->dest.addr[3] != 0xff || ETH(p)->dest.addr[4] != 0xff || ETH(p)->dest.addr[5] != 0xff) {
         return false;
     }
@@ -118,7 +119,8 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ARP_REQUEST != ntohs(ARP(p)->opcode)) {
         return false;
     }
-    if(!StateMachine::instance()->is_associated_host(*((uint32_t*)ARP(p)->dipaddr.addrw))) {
+    if(!(StateMachine::instance()->is_associated_host(*((uint32_t*)ARP(p)->dipaddr.addrw))) &&
+       (iface->ip_addr.u_addr.ip4.addr != *((uint32_t*)ARP(p)->dipaddr.addrw))) {
         return false;
     }
     return true;
@@ -126,7 +128,8 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
 
 pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
-        return TYPE_CONSUME;
+        pbuf_free(p);
+        return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
     const err_t err = transmit_proxy_arp(type,
                    CustomNetif::instance()->interface_address(type),
@@ -139,5 +142,6 @@ pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ERR_OK != err) {
         ESP_LOGE(__func__, "Cannot send ARP response");
     }
-    return TYPE_CONSUME;
+    pbuf_free(p);
+    return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }

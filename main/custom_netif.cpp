@@ -95,32 +95,17 @@ err_t CustomNetif::traverse_input_chain(const tcpip_adapter_if_t type, struct pb
     }
     for(uint8_t i = 0 ; i < MAXIMUM_CHAIN ; i++) {
         if(!_input_chain[type][i].filter && _input_chain[type][i].process) {
-            if(TYPE_CONSUME == _input_chain[type][i].process(type, p)) {
-                pbuf_free(p);
+            if(TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN == _input_chain[type][i].process(type, p)) {
                 return ERR_OK;
             }
         } else if(_input_chain[type][i].filter && _input_chain[type][i].filter(type, p)) {
-            if(TYPE_CONSUME == _input_chain[type][i].process(type, p)) {
-                pbuf_free(p);
+            if(TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN == _input_chain[type][i].process(type, p)) {
                 return ERR_OK;
             }
         } else if(!_input_chain[type][i].filter && !_input_chain[type][i].process) {
             break;
         }
     }
-#if 0
->>>> wlanif.c <<<<
-
-void ESP_IRAM_ATTR
-wlanif_input(struct netif *netif, void *buffer, u16_t len, void* eb) {
-...
-  /* full packet send to tcpip_thread to process */
-  if (netif->input(p, netif) != ERR_OK) {
-    LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
-    pbuf_free(p);
-  }
-}
-#endif
     return _original_inputs[type](p, inp);
 }
 

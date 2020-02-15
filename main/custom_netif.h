@@ -15,8 +15,8 @@
 #define MAXIMUM_CHAIN      (10)
 
 enum pkt_fate_t {
-    TYPE_CONSUME = 0,
-    TYPE_FORWARD
+    TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN = 0,
+    TYPE_FORWARD_PACKET_TO_NEXT_INPUT_CHAIN
 };
 
 typedef bool (*input_chain_filter_fn)(const tcpip_adapter_if_t type, struct pbuf *p);

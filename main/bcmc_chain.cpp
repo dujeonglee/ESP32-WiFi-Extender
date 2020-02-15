@@ -23,20 +23,24 @@ bool bcmc_filter(const tcpip_adapter_if_t type, struct pbuf *p) {
 
 pkt_fate_t bcmc_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_STA)) {
-        return TYPE_CONSUME;
+        pbuf_free(p);
+        return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
     if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_STA, p)) {
         ESP_LOGE(__func__, "Cannot relay bcmc to STA");
     }
-    return TYPE_CONSUME;
+    pbuf_free(p);
+    return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
 
 pkt_fate_t bcmc_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_AP)) {
-        return TYPE_CONSUME;
+        pbuf_free(p);
+        return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
     if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_AP, p)) {
         ESP_LOGE(__func__, "Cannot relay bcmc to AP");
     }
-    return TYPE_CONSUME;
+    pbuf_free(p);
+    return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }

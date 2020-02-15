@@ -20,5 +20,6 @@ pkt_fate_t debug_process(const tcpip_adapter_if_t type, struct pbuf *p) {
             ESP_LOGI(__func__, "UDP %hhu -> %hhu", ntohs(UDP4(p)->src), ntohs(UDP4(p)->dest));
         }
     }
-    return TYPE_CONSUME;
+    pbuf_free(p);
+    return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
