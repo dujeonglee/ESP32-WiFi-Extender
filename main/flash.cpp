@@ -23,7 +23,7 @@ esp_err_t Flash::init() {
 esp_err_t Flash::write_u8(const char* field, uint8_t data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -47,7 +47,7 @@ esp_err_t Flash::write_u8(const char* field, uint8_t data) {
 esp_err_t Flash::write_u16(const char* field, uint16_t data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -71,7 +71,7 @@ esp_err_t Flash::write_u16(const char* field, uint16_t data) {
 esp_err_t Flash::write_u32(const char* field, uint32_t data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -95,7 +95,7 @@ esp_err_t Flash::write_u32(const char* field, uint32_t data) {
 esp_err_t Flash::write_str(const char* field, const char* data, size_t data_length) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -120,7 +120,7 @@ esp_err_t Flash::write_str(const char* field, const char* data, size_t data_leng
 esp_err_t Flash::read_u8(const char* field, uint8_t* data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -143,7 +143,7 @@ esp_err_t Flash::read_u8(const char* field, uint8_t* data) {
 esp_err_t Flash::read_u16(const char* field, uint16_t* data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -166,7 +166,7 @@ esp_err_t Flash::read_u16(const char* field, uint16_t* data) {
 esp_err_t Flash::read_u32(const char* field, uint32_t* data) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -189,7 +189,7 @@ esp_err_t Flash::read_u32(const char* field, uint32_t* data) {
 esp_err_t Flash::read_str(const char* field, char* data, size_t* data_length) {
     nvs_handle handle;
     esp_err_t ret;
-    
+
     ret = init();
     if(ret != ESP_OK) {
         return ret;
@@ -207,5 +207,5 @@ esp_err_t Flash::read_str(const char* field, char* data, size_t* data_length) {
         nvs_close(handle);
         return ret;
     }
-    return ret;    
+    return ret;
 }

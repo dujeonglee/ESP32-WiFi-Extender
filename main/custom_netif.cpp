@@ -133,7 +133,7 @@ err_t CustomNetif::l3transmit(const tcpip_adapter_if_t type, struct pbuf *p, ip4
             route.addr = iface->gw.u_addr.ip4.addr;
         }
     }
-    
+
     // reset eth header.
     pbuf_header(p, -sizeof(struct eth_hdr));
     for(uint8_t tx = 0 ; tx < CONFIG_MAXIMUM_RETRANSMISSION ; tx++) {

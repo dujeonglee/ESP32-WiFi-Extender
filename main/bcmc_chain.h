@@ -4,9 +4,9 @@
  * @brief Broadcast Multicast chain
  * @version 0.1
  * @date 2020-02-14
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef BCMCCHAIN_H
 #define BCMCCHAIN_H

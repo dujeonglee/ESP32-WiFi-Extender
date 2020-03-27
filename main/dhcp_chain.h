@@ -4,9 +4,9 @@
  * @brief DHCP chain
  * @version 0.1
  * @date 2020-02-09
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef DHCPCHAIN_H
 #define DHCPCHAIN_H

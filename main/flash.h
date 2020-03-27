@@ -4,9 +4,9 @@
  * @brief Flash class reading/writing data from/to nvm
  * @version 0.1
  * @date 2020-02-08
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef FLASH_H
 #define FLASH_H

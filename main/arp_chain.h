@@ -4,9 +4,9 @@
  * @brief Proxy ARP
  * @version 0.1
  * @date 2020-02-09
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef ARPCHAIN_H
 #define ARPCHAIN_H

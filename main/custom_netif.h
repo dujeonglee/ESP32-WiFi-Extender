@@ -4,9 +4,9 @@
  * @brief Custom netif interface
  * @version 0.1
  * @date 2020-02-08
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef CUSTOMNETIF_H
 #define CUSTOMNETIF_H

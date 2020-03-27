@@ -4,9 +4,9 @@
  * @brief State machine of wifi extender
  * @version 0.1
  * @date 2020-02-08
- * 
+ *
  * @copyright Copyright (c) 2020
- * 
+ *
  */
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
