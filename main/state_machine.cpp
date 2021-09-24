@@ -7,10 +7,12 @@
 
 #include "state_machine.h"
 
-static esp_err_t system_event_handler(void *ctx, system_event_t *event) {
-    (void)ctx;
-    StateMachine::instance()->event_handler(event);
-    return ESP_OK;
+static void __wifi_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data) {
+    StateMachine::instance()->wifi_event_handler(arg, base, id, data);
+}
+
+static void __ip_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data) {
+    StateMachine::instance()->ip_event_handler(arg, base, id, data);
 }
 
 StateMachine* StateMachine::_instance = nullptr;
@@ -68,7 +70,7 @@ void StateMachine::start_connect() {
     ESP_LOGI(__func__, "Connecting to AP");
 }
 
-void StateMachine::start_service_ap(system_event_t* event) {
+void StateMachine::start_service_ap(ip_event_got_ip_t *event) {
     ESP_LOGI(__func__, "Start service AP");
 
     wifi_config_t wifi_config;
@@ -82,7 +84,7 @@ void StateMachine::start_service_ap(system_event_t* event) {
     if(ESP_OK != tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP)) {
         esp_wifi_disconnect();
     }
-    if(ESP_OK != tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &(event->event_info.got_ip.ip_info))) {
+    if(ESP_OK != tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, (tcpip_adapter_ip_info_t*)&(event->ip_info))) {
         esp_wifi_disconnect();
     }
     if(ESP_OK != esp_wifi_set_mode(WIFI_MODE_APSTA)){
@@ -144,10 +146,27 @@ bool StateMachine::is_associated_host(const uint32_t host) {
 }
 
 esp_err_t StateMachine::start() {
-    tcpip_adapter_init();
-    if(ESP_OK != esp_event_loop_init(system_event_handler, NULL)) {
+    esp_err_t err;
+
+    err = esp_netif_init();
+    if (ESP_OK != err) {
+        ESP_LOGE(__func__, "esp_netif_init is failed");
         return ESP_FAIL;
     }
+
+    err = esp_event_loop_create_default();
+    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+        return ESP_FAIL;
+    }
+    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &__wifi_event_handler, NULL);
+    if (err != ESP_OK) {
+        return ESP_FAIL;
+    }
+    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &__ip_event_handler, NULL);
+    if (err != ESP_OK) {
+        return ESP_FAIL;
+    }
+
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     if(ESP_OK != esp_wifi_init(&cfg)) {
         return ESP_FAIL;
@@ -160,12 +179,14 @@ esp_err_t StateMachine::start() {
     }
     return ESP_OK;
 }
-void StateMachine::event_handler(system_event_t* event) {
-    switch(event->event_id) {
-    case SYSTEM_EVENT_WIFI_READY:/**< ESP32 WiFi ready */
+
+void StateMachine::wifi_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data) {
+    switch(id) {
+    case WIFI_EVENT_WIFI_READY:
         ESP_LOGI(__func__,"SYSTEM_EVENT_WIFI_READY");
     break;
-    case SYSTEM_EVENT_SCAN_DONE:/**< ESP32 finish scanning AP */
+
+    case WIFI_EVENT_SCAN_DONE:
     {
         uint16_t num_of_ap = 0;
         wifi_ap_record_t *ap_list = NULL;
@@ -203,7 +224,8 @@ restart_scan:
         start_scan();
     }
     break;
-    case SYSTEM_EVENT_STA_START:/**< ESP32 station start */
+
+    case WIFI_EVENT_STA_START:/**< ESP32 station start */
     {
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_START");
         CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_STA);
@@ -215,44 +237,46 @@ restart_scan:
         start_scan();
     }
     break;
-    case SYSTEM_EVENT_STA_STOP:/**< ESP32 station stop */
+
+    case WIFI_EVENT_STA_STOP:/**< ESP32 station stop */
         CustomNetif::instance()->uninstall_input_chain(TCPIP_ADAPTER_IF_STA);
-        break;
-    case SYSTEM_EVENT_STA_CONNECTED:/**< ESP32 station connected to AP */
+    break;
+
+    case WIFI_EVENT_STA_CONNECTED:/**< ESP32 station connected to AP */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_CONNECTED");
         _retry_connection = 0;
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:/**< ESP32 station disconnected from AP */
+    break;
+
+    case WIFI_EVENT_STA_DISCONNECTED:/**< ESP32 station disconnected from AP */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_DISCONNECTED");
         start_connect();
-        break;
-    case SYSTEM_EVENT_STA_AUTHMODE_CHANGE:/**< the auth mode of AP connected by ESP32 station changed */
+    break;
+
+    case WIFI_EVENT_STA_AUTHMODE_CHANGE:/**< the auth mode of AP connected by ESP32 station changed */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_AUTHMODE_CHANGE");
-        break;
-    case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-        ESP_LOGI(__func__,"SYSTEM_EVENT_STA_GOT_IP");
-        ESP_LOGI(__func__, "got ip:%s", ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
-        start_service_ap(event);
-        break;
-    case SYSTEM_EVENT_STA_LOST_IP:/**< ESP32 station lost IP and the IP is reset to 0 */
-        ESP_LOGI(__func__,"SYSTEM_EVENT_STA_LOST_IP");
-        break;
-    case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:/**< ESP32 station wps succeeds in enrollee mode */
+    break;
+
+    case WIFI_EVENT_STA_WPS_ER_SUCCESS:/**< ESP32 station wps succeeds in enrollee mode */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_WPS_ER_SUCCESS");
-        break;
-    case SYSTEM_EVENT_STA_WPS_ER_FAILED:/**< ESP32 station wps fails in enrollee mode */
+    break;
+
+    case WIFI_EVENT_STA_WPS_ER_FAILED:/**< ESP32 station wps fails in enrollee mode */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_WPS_ER_FAILED");
-        break;
-    case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:/**< ESP32 station wps timeout in enrollee mode */
+    break;
+
+    case WIFI_EVENT_STA_WPS_ER_TIMEOUT:/**< ESP32 station wps timeout in enrollee mode */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_WPS_ER_TIMEOUT");
-        break;
-    case SYSTEM_EVENT_STA_WPS_ER_PIN:/**< ESP32 station wps pin code in enrollee mode */
+    break;
+
+    case WIFI_EVENT_STA_WPS_ER_PIN:/**< ESP32 station wps pin code in enrollee mode */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_WPS_ER_PIN");
-        break;
-    case SYSTEM_EVENT_STA_WPS_ER_PBC_OVERLAP:/*!< ESP32 station wps overlap in enrollee mode */
+    break;
+
+    case WIFI_EVENT_STA_WPS_ER_PBC_OVERLAP:/*!< ESP32 station wps overlap in enrollee mode */
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_WPS_ER_PBC_OVERLAP");
-        break;
-    case SYSTEM_EVENT_AP_START:/**< ESP32 soft-AP start */
+    break;
+
+    case WIFI_EVENT_AP_START:/**< ESP32 soft-AP start */
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_START");
         CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_AP);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, arp_filter_ap, arp_process_ap);
@@ -260,28 +284,58 @@ restart_scan:
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, bcmc_filter, bcmc_process_ap);
         CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, route_filter_ap, route_process_ap);
         //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, nullptr, debug_process);
-        break;
-    case SYSTEM_EVENT_AP_STOP:/**< ESP32 soft-AP stop */
+    break;
+
+    case WIFI_EVENT_AP_STOP:
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STOP");
         CustomNetif::instance()->uninstall_input_chain(TCPIP_ADAPTER_IF_AP);
-        break;
-    case SYSTEM_EVENT_AP_STACONNECTED:/**< a station connected to ESP32 soft-AP */
+    break;
+
+    case WIFI_EVENT_AP_STACONNECTED:
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STACONNECTED");
-        break;
-    case SYSTEM_EVENT_AP_STADISCONNECTED:/**< a station disconnected from ESP32 soft-AP */
-        ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STADISCONNECTED");
-        remove_associated_host(event->event_info.sta_disconnected.mac);
-        break;
-    case SYSTEM_EVENT_AP_STAIPASSIGNED:/**< ESP32 soft-AP assign an IP to a connected station */
-        ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STAIPASSIGNED");
-        break;
-    case SYSTEM_EVENT_AP_PROBEREQRECVED:/**< Receive probe request packet in soft-AP interface */
+    break;
+
+    case WIFI_EVENT_AP_STADISCONNECTED:
+    {
+        wifi_event_ap_stadisconnected_t* event = (wifi_event_ap_stadisconnected_t*)data;
+        remove_associated_host(event->mac);
+    }
+    break;
+
+    case WIFI_EVENT_AP_PROBEREQRECVED:
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_PROBEREQRECVED");
-        break;
-    case SYSTEM_EVENT_GOT_IP6:/**< ESP32 station or ap or ethernet interface v6IP addr is preferred */
-        ESP_LOGI(__func__,"SYSTEM_EVENT_GOT_IP6");
-        break;
+    break;
+
     default:
-        break;
+    break;
+    }
+}
+
+void StateMachine::ip_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data) {
+    switch(id) {
+    case IP_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
+    {
+        ip_event_got_ip_t *event = (ip_event_got_ip_t *)data;
+
+        ESP_LOGI(__func__,"SYSTEM_EVENT_STA_GOT_IP");
+        ESP_LOGI(__func__, "got ip:%s", ip4addr_ntoa((ip4_addr_t*)&event->ip_info.ip));
+        start_service_ap(event);
+    }
+    break;
+
+    case IP_EVENT_STA_LOST_IP:/**< ESP32 station lost IP and the IP is reset to 0 */
+        ESP_LOGI(__func__,"SYSTEM_EVENT_STA_LOST_IP");
+    break;
+
+    case IP_EVENT_AP_STAIPASSIGNED:/**< ESP32 soft-AP assign an IP to a connected station */
+        ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STAIPASSIGNED");
+    break;
+
+    case IP_EVENT_GOT_IP6:/**< ESP32 station or ap or ethernet interface v6IP addr is preferred */
+        ESP_LOGI(__func__,"SYSTEM_EVENT_GOT_IP6");
+    break;
+
+    default:
+    break;
     }
 }

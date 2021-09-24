@@ -26,14 +26,15 @@ private:
     StateMachine();
     void start_scan();
     void start_connect();
-    void start_service_ap(system_event_t* event);
+    void start_service_ap(ip_event_got_ip_t *event);
 
     uint8_t _retry_connection;
     host_info_t _associated_hosts[CONFIG_MAX_STATION];
 public:
     static StateMachine* instance();
     esp_err_t start();
-    void event_handler(system_event_t* event);
+    void wifi_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data);
+    void ip_event_handler(void* arg, esp_event_base_t base, int32_t id, void* data);
     bool is_associated_sta(const uint8_t* const addr);
     void add_associated_host(const uint8_t* const sta, const uint32_t addr);
     void remove_associated_host(const uint8_t* const sta);

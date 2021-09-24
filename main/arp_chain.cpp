@@ -24,14 +24,14 @@ static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_
     hdr->opcode = htons(opcode);
 
     /* Write the ARP MAC-Addresses */
-    ETHADDR16_COPY(&hdr->shwaddr, hwsrc_addr);
-    ETHADDR16_COPY(&hdr->dhwaddr, hwdst_addr);
+    SMEMCPY(&hdr->shwaddr, hwsrc_addr, ETH_HWADDR_LEN);
+    SMEMCPY(&hdr->dhwaddr, hwdst_addr, ETH_HWADDR_LEN);
     /* Copy struct ip4_addr2 to aligned ip4_addr, to support compilers without
-   * structure packing. */
-    IPADDR2_COPY(&hdr->sipaddr, ipsrc_addr);
-    IPADDR2_COPY(&hdr->dipaddr, ipdst_addr);
+     * structure packing. */
+    SMEMCPY(&hdr->sipaddr, ipsrc_addr, sizeof(ip4_addr_t));
+    SMEMCPY(&hdr->dipaddr, ipdst_addr, sizeof(ip4_addr_t));
 
-    hdr->hwtype = PP_HTONS(1);
+    hdr->hwtype = PP_HTONS(LWIP_IANA_HWTYPE_ETHERNET);
     hdr->proto = PP_HTONS(ETHTYPE_IP);
     /* set hwlen and protolen */
     hdr->hwlen = ETH_HWADDR_LEN;
@@ -39,8 +39,8 @@ static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_
 
     ethhdr->type = PP_HTONS(ETHTYPE_ARP);
 
-    ETHADDR16_COPY(&ethhdr->dest, ethdst_addr);
-    ETHADDR16_COPY(&ethhdr->src, ethsrc_addr);
+    SMEMCPY(&ethhdr->dest, ethdst_addr, ETH_HWADDR_LEN);
+    SMEMCPY(&ethhdr->src, ethsrc_addr, ETH_HWADDR_LEN);
 
     /* send ARP query */
     result = CustomNetif::instance()->transmit(type, p);
@@ -58,7 +58,7 @@ bool arp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ETHTYPE_ARP != ntohs(ETH(p)->type)) {
         return false;
     }
-    if(HWTYPE_ETHERNET != ntohs(ARP(p)->hwtype)) {
+    if(LWIP_IANA_HWTYPE_ETHERNET != ntohs(ARP(p)->hwtype)) {
         return false;
     }
     if(ETHTYPE_IP != ntohs(ARP(p)->proto)) {
@@ -104,7 +104,7 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     if(ETHTYPE_ARP != ntohs(ETH(p)->type)) {
         return false;
     }
-    if(HWTYPE_ETHERNET != ntohs(ARP(p)->hwtype)) {
+    if(LWIP_IANA_HWTYPE_ETHERNET != ntohs(ARP(p)->hwtype)) {
         return false;
     }
     if(ETHTYPE_IP != ntohs(ARP(p)->proto)) {

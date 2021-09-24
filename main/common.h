@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-#include "esp_event_loop.h"
+#include "esp_event.h"
 #include "esp_wifi.h"
 #include "esp_log.h"
 #include "esp_err.h"
@@ -22,13 +22,15 @@
 #include "lwip/pbuf.h"
 #include "lwip/prot/ethernet.h"
 #include "lwip/prot/etharp.h"
+#include "lwip/ip4_addr.h"
 #include "lwip/prot/ip4.h"
 #include "lwip/prot/ip.h"
 #include "lwip/prot/tcp.h"
 #include "lwip/prot/udp.h"
 #include "lwip/prot/dhcp.h"
+#include "lwip/prot/iana.h"
 
-#include "tcpip_adapter.h"
+#include "esp_netif.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 
