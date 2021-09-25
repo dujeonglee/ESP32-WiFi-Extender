@@ -17,6 +17,7 @@
 #include "esp_wifi.h"
 #include "esp_log.h"
 #include "esp_err.h"
+#include "esp_netif_lwip_internal.h"
 
 #include "lwip/netif.h"
 #include "lwip/pbuf.h"

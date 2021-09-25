@@ -12,8 +12,8 @@
 #define ROUTECHAIN_H
 #include "common.h"
 
-bool route_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t route_process_ap(const tcpip_adapter_if_t type, struct pbuf *p);
-bool route_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t route_process_sta(const tcpip_adapter_if_t type, struct pbuf *p);
+bool route_filter_ap(const interface_t type, struct pbuf *p);
+pkt_fate_t route_process_ap(const interface_t type, struct pbuf *p);
+bool route_filter_sta(const interface_t type, struct pbuf *p);
+pkt_fate_t route_process_sta(const interface_t type, struct pbuf *p);
 #endif

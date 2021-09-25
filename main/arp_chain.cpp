@@ -2,7 +2,7 @@
 #include "state_machine.h"
 #include "arp_chain.h"
 
-static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_addr *ethsrc_addr,
+static err_t transmit_proxy_arp(const interface_t type, const struct eth_addr *ethsrc_addr,
                  const struct eth_addr *ethdst_addr,
                  const struct eth_addr *hwsrc_addr, const ip4_addr_t *ipsrc_addr,
                  const struct eth_addr *hwdst_addr, const ip4_addr_t *ipdst_addr,
@@ -51,7 +51,7 @@ static err_t transmit_proxy_arp(const tcpip_adapter_if_t type, const struct eth_
     return result;
 }
 
-bool arp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
+bool arp_filter_ap(const interface_t type, struct pbuf *p) {
     if(ETH(p)->dest.addr[0] != 0xff || ETH(p)->dest.addr[1] != 0xff || ETH(p)->dest.addr[2] != 0xff || ETH(p)->dest.addr[3] != 0xff || ETH(p)->dest.addr[4] != 0xff || ETH(p)->dest.addr[5] != 0xff) {
         return false;
     }
@@ -76,7 +76,7 @@ bool arp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     return true;
 }
 
-pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
+pkt_fate_t arp_process_ap(const interface_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
@@ -96,7 +96,7 @@ pkt_fate_t arp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
 
-bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
+bool arp_filter_sta(const interface_t type, struct pbuf *p) {
     struct netif* iface = CustomNetif::instance()->get_interface(type);
     if(ETH(p)->dest.addr[0] != 0xff || ETH(p)->dest.addr[1] != 0xff || ETH(p)->dest.addr[2] != 0xff || ETH(p)->dest.addr[3] != 0xff || ETH(p)->dest.addr[4] != 0xff || ETH(p)->dest.addr[5] != 0xff) {
         return false;
@@ -126,7 +126,7 @@ bool arp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     return true;
 }
 
-pkt_fate_t arp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
+pkt_fate_t arp_process_sta(const interface_t type, struct pbuf *p) {
     if(!CustomNetif::instance()->interface_address(type)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;

@@ -12,8 +12,8 @@
 #define DHCPCHAIN_H
 #include "common.h"
 
-bool dhcp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t dhcp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p);
-bool dhcp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t dhcp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p);
+bool dhcp_filter_ap(const interface_t type, struct pbuf *p);
+pkt_fate_t dhcp_process_ap(const interface_t type, struct pbuf *p);
+bool dhcp_filter_sta(const interface_t type, struct pbuf *p);
+pkt_fate_t dhcp_process_sta(const interface_t type, struct pbuf *p);
 #endif

@@ -2,7 +2,7 @@
 #include "state_machine.h"
 #include "dhcp_chain.h"
 
-bool dhcp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
+bool dhcp_filter_ap(const interface_t type, struct pbuf *p) {
     if(ETH(p)->dest.addr[0] != 0xff || ETH(p)->dest.addr[1] != 0xff || ETH(p)->dest.addr[2] != 0xff || ETH(p)->dest.addr[3] != 0xff || ETH(p)->dest.addr[4] != 0xff || ETH(p)->dest.addr[5] != 0xff) {
         return false;
     }
@@ -12,22 +12,22 @@ bool dhcp_filter_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
     return true;
 }
 
-pkt_fate_t dhcp_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
-    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_STA)) {
+pkt_fate_t dhcp_process_ap(const interface_t type, struct pbuf *p) {
+    if(!CustomNetif::instance()->get_interface(STATION_TYPE)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
     /* Set broadcast flag */
     DHCP(p)->flags = htons(0x8000);
     UDP4(p)->chksum = 0;
-    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_STA, p)) {
+    if(ERR_OK != CustomNetif::instance()->transmit(STATION_TYPE, p)) {
         ESP_LOGE(__func__, "Cannot relay dhcp to STA");
     }
     pbuf_free(p);
     return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
 
-bool dhcp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
+bool dhcp_filter_sta(const interface_t type, struct pbuf *p) {
     if(ETHTYPE_IP != ntohs(ETH(p)->type) || IP_PROTO_UDP != IP4(p)->_proto || 68 != ntohs(UDP4(p)->dest)) {
         return false;
     }
@@ -37,12 +37,12 @@ bool dhcp_filter_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     return true;
 }
 
-pkt_fate_t dhcp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
+pkt_fate_t dhcp_process_sta(const interface_t type, struct pbuf *p) {
     uint8_t *p_option = nullptr;
     bool ack = false;
     uint8_t *router_address = NULL;
 
-    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_AP)) {
+    if(!CustomNetif::instance()->get_interface(ACCESS_POINT_TYPE)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
@@ -69,7 +69,7 @@ pkt_fate_t dhcp_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
     /* Remove broadcast flag */
     DHCP(p)->flags = htons(0x0000);
     UDP4(p)->chksum = 0;
-    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_AP, p)) {
+    if(ERR_OK != CustomNetif::instance()->transmit(ACCESS_POINT_TYPE, p)) {
         ESP_LOGE(__func__, "Cannot relay dhcp to AP");
     }
     pbuf_free(p);

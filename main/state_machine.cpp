@@ -81,10 +81,7 @@ void StateMachine::start_service_ap(ip_event_got_ip_t *event) {
     wifi_config.ap.max_connection = CONFIG_MAX_STATION;
     wifi_config.ap.authmode = WIFI_AUTH_WPA_WPA2_PSK;
 
-    if(ESP_OK != tcpip_adapter_dhcps_stop(TCPIP_ADAPTER_IF_AP)) {
-        esp_wifi_disconnect();
-    }
-    if(ESP_OK != tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, (tcpip_adapter_ip_info_t*)&(event->ip_info))) {
+    if(ESP_OK != esp_netif_set_ip_info(CustomNetif::instance()->get_esp_interface(ACCESS_POINT_TYPE), (esp_netif_ip_info_t*)&(event->ip_info))) {
         esp_wifi_disconnect();
     }
     if(ESP_OK != esp_wifi_set_mode(WIFI_MODE_APSTA)){
@@ -147,30 +144,23 @@ bool StateMachine::is_associated_host(const uint32_t host) {
 
 esp_err_t StateMachine::start() {
     esp_err_t err;
-
-    err = esp_netif_init();
-    if (ESP_OK != err) {
-        ESP_LOGE(__func__, "esp_netif_init is failed");
-        return ESP_FAIL;
-    }
-
-    err = esp_event_loop_create_default();
-    if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-        return ESP_FAIL;
-    }
-    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &__wifi_event_handler, NULL);
-    if (err != ESP_OK) {
-        return ESP_FAIL;
-    }
-    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &__ip_event_handler, NULL);
-    if (err != ESP_OK) {
-        return ESP_FAIL;
-    }
-
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+
+    assert(CustomNetif::instance());
+
     if(ESP_OK != esp_wifi_init(&cfg)) {
         return ESP_FAIL;
     }
+
+    err = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &__wifi_event_handler, NULL, NULL);
+    if (err != ESP_OK) {
+        return ESP_FAIL;
+    }
+    err = esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &__ip_event_handler, NULL, NULL);
+    if (err != ESP_OK) {
+        return ESP_FAIL;
+    }
+
     if(ESP_OK != esp_wifi_set_mode(WIFI_MODE_STA)) {
         return ESP_FAIL;
     }
@@ -228,18 +218,18 @@ restart_scan:
     case WIFI_EVENT_STA_START:/**< ESP32 station start */
     {
         ESP_LOGI(__func__,"SYSTEM_EVENT_STA_START");
-        CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_STA);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, arp_filter_sta, arp_process_sta);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, dhcp_filter_sta, dhcp_process_sta);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, bcmc_filter, bcmc_process_sta);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, route_filter_sta, route_process_sta);
-        //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_STA, nullptr, debug_process);
+        CustomNetif::instance()->install_input_chain(STATION_TYPE);
+        CustomNetif::instance()->add_chain(STATION_TYPE, arp_filter_sta, arp_process_sta);
+        CustomNetif::instance()->add_chain(STATION_TYPE, dhcp_filter_sta, dhcp_process_sta);
+        CustomNetif::instance()->add_chain(STATION_TYPE, bcmc_filter, bcmc_process_sta);
+        CustomNetif::instance()->add_chain(STATION_TYPE, route_filter_sta, route_process_sta);
+        //CustomNetif::instance()->add_chain(STATION_TYPE, nullptr, debug_process);
         start_scan();
     }
     break;
 
     case WIFI_EVENT_STA_STOP:/**< ESP32 station stop */
-        CustomNetif::instance()->uninstall_input_chain(TCPIP_ADAPTER_IF_STA);
+        CustomNetif::instance()->uninstall_input_chain(STATION_TYPE);
     break;
 
     case WIFI_EVENT_STA_CONNECTED:/**< ESP32 station connected to AP */
@@ -278,17 +268,17 @@ restart_scan:
 
     case WIFI_EVENT_AP_START:/**< ESP32 soft-AP start */
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_START");
-        CustomNetif::instance()->install_input_chain(TCPIP_ADAPTER_IF_AP);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, arp_filter_ap, arp_process_ap);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, dhcp_filter_ap, dhcp_process_ap);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, bcmc_filter, bcmc_process_ap);
-        CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, route_filter_ap, route_process_ap);
-        //CustomNetif::instance()->add_chain(TCPIP_ADAPTER_IF_AP, nullptr, debug_process);
+        CustomNetif::instance()->install_input_chain(ACCESS_POINT_TYPE);
+        CustomNetif::instance()->add_chain(ACCESS_POINT_TYPE, arp_filter_ap, arp_process_ap);
+        CustomNetif::instance()->add_chain(ACCESS_POINT_TYPE, dhcp_filter_ap, dhcp_process_ap);
+        CustomNetif::instance()->add_chain(ACCESS_POINT_TYPE, bcmc_filter, bcmc_process_ap);
+        CustomNetif::instance()->add_chain(ACCESS_POINT_TYPE, route_filter_ap, route_process_ap);
+        //CustomNetif::instance()->add_chain(ACCESS_POINT_TYPE, nullptr, debug_process);
     break;
 
     case WIFI_EVENT_AP_STOP:
         ESP_LOGI(__func__,"SYSTEM_EVENT_AP_STOP");
-        CustomNetif::instance()->uninstall_input_chain(TCPIP_ADAPTER_IF_AP);
+        CustomNetif::instance()->uninstall_input_chain(ACCESS_POINT_TYPE);
     break;
 
     case WIFI_EVENT_AP_STACONNECTED:

@@ -1,7 +1,7 @@
 #include "custom_netif.h"
 #include "debug_chain.h"
 
-pkt_fate_t debug_process(const tcpip_adapter_if_t type, struct pbuf *p) {
+pkt_fate_t debug_process(const interface_t type, struct pbuf *p) {
     ESP_LOGI(__func__, "Packet is received from %u", type);
 
     ESP_LOGI(__func__, "ETH %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx -> %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx [%04hx]", 

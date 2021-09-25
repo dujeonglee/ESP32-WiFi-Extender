@@ -12,7 +12,7 @@
 #define BCMCCHAIN_H
 #include "common.h"
 
-bool bcmc_filter(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t bcmc_process_ap(const tcpip_adapter_if_t type, struct pbuf *p);
-pkt_fate_t bcmc_process_sta(const tcpip_adapter_if_t type, struct pbuf *p);
+bool bcmc_filter(const interface_t type, struct pbuf *p);
+pkt_fate_t bcmc_process_ap(const interface_t type, struct pbuf *p);
+pkt_fate_t bcmc_process_sta(const interface_t type, struct pbuf *p);
 #endif

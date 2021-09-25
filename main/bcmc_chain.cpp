@@ -1,7 +1,7 @@
 #include "custom_netif.h"
 #include "bcmc_chain.h"
 
-bool bcmc_filter(const tcpip_adapter_if_t type, struct pbuf *p) {
+bool bcmc_filter(const interface_t type, struct pbuf *p) {
     struct netif* iface = CustomNetif::instance()->get_interface(type);
 
     if(ETHTYPE_IP == ntohs(ETH(p)->type) && IP_PROTO_UDP == IP4(p)->_proto && (68 == ntohs(UDP4(p)->dest) || 67 == ntohs(UDP4(p)->dest))) {
@@ -21,24 +21,24 @@ bool bcmc_filter(const tcpip_adapter_if_t type, struct pbuf *p) {
     }
 }
 
-pkt_fate_t bcmc_process_ap(const tcpip_adapter_if_t type, struct pbuf *p) {
-    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_STA)) {
+pkt_fate_t bcmc_process_ap(const interface_t type, struct pbuf *p) {
+    if(!CustomNetif::instance()->get_interface(STATION_TYPE)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
-    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_STA, p)) {
+    if(ERR_OK != CustomNetif::instance()->transmit(STATION_TYPE, p)) {
         ESP_LOGE(__func__, "Cannot relay bcmc to STA");
     }
     pbuf_free(p);
     return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
 }
 
-pkt_fate_t bcmc_process_sta(const tcpip_adapter_if_t type, struct pbuf *p) {
-    if(!CustomNetif::instance()->get_interface(TCPIP_ADAPTER_IF_AP)) {
+pkt_fate_t bcmc_process_sta(const interface_t type, struct pbuf *p) {
+    if(!CustomNetif::instance()->get_interface(ACCESS_POINT_TYPE)) {
         pbuf_free(p);
         return TYPE_CONSUME_PACKET_AND_EXIT_INPUT_CHAIN;
     }
-    if(ERR_OK != CustomNetif::instance()->l3transmit(TCPIP_ADAPTER_IF_AP, p)) {
+    if(ERR_OK != CustomNetif::instance()->transmit(ACCESS_POINT_TYPE, p)) {
         ESP_LOGE(__func__, "Cannot relay bcmc to AP");
     }
     pbuf_free(p);
